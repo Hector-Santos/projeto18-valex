@@ -14,7 +14,7 @@ export default async function errorHandler(error:{type: string, message: string}
 	if (error.type === "recharge_not_found") return res.status(404).send(error.message);
     if (error.type === "blocked_card") return res.status(409).send(error.message);
 	if (error.type === "incorrect_password") return res.status(401).send(error.message);
-	if (error.type === "unlocked_card") return res.status(409).send(error.message);
+	if (error.type === "unblocked_card") return res.status(409).send(error.message);
 	if (error.type === "inactive_card") return res.status(400).send(error.message);
 
 	return res.sendStatus(500);

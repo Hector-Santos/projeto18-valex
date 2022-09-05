@@ -1,8 +1,17 @@
 import { findByApiKey } from "../repositories/companyRepository.js";
 import { findById } from "../repositories/employeeRepository.js";
-import { CardInsertData, CardUpdateData, findByTypeAndEmployeeId, TransactionTypes, insert, findById as findCardByID, update as updateCard } from "../repositories/cardRepository.js";
-import { findByCardId as findPaymentsByCardId, PaymentWithBusinessName } from "../repositories/paymentRepository.js";
-import { findByCardId as findRechargesByCardId, Recharge } from "../repositories/rechargeRepository.js";
+import { CardInsertData,
+         CardUpdateData,
+         findByTypeAndEmployeeId,
+         TransactionTypes, insert,
+         findById as findCardByID,
+         update as updateCard } from "../repositories/cardRepository.js";
+import { findByCardId as findPaymentsByCardId,
+	     PaymentWithBusinessName } from "../repositories/paymentRepository.js";
+import { findByCardId as findRechargesByCardId,
+	     Recharge,
+		 RechargeInsertData,
+		 insert as insertRecharge} from "../repositories/rechargeRepository.js";
 import { faker } from '@faker-js/faker'
 import dotenv from 'dotenv';
 import Cryptr from 'cryptr'
@@ -110,16 +119,16 @@ export async function blockCardService(cardId:number, password:string) {
     updateCard(cardId, cardData)
 }
 
-export async function unlockCardService(cardId:number, password:string) {
+export async function unblockCardService(cardId:number, password:string) {
 	const card = await findCardByID(cardId);
 	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
 	
     const isExpired = compareDate(card.expirationDate)
-	if(isExpired) throw {type: 'expired_card', message: 'you cant unlock an expired card'}
+	if(isExpired) throw {type: 'expired_card', message: 'you cant unblock an expired card'}
 
-	if(!card.isBlocked) throw {type: 'unlocked_card', message: 'this card is already unlocked'}
+	if(!card.isBlocked) throw {type: 'unblocked_card', message: 'this card is already unblocked'}
 
-	if(!card.password)throw {type: 'inactive_card', message: 'you cant unlock an inactive card'}
+	if(!card.password)throw {type: 'inactive_card', message: 'you cant unblock an inactive card'}
 
 	const decriptedPassword = cryptr.decrypt(card.password)
 
@@ -130,6 +139,24 @@ export async function unlockCardService(cardId:number, password:string) {
 	   }
 
     updateCard(cardId, cardData)
+}
+
+export async function rechargeCardService(cardId:number, amount:number) {
+	const card = await findCardByID(cardId);
+	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
+	
+    const isExpired = compareDate(card.expirationDate)
+	if(isExpired) throw {type: 'expired_card', message: 'you cant recharge an expired card'}
+
+	if(!card.password)throw {type: 'inactive_card', message: 'you cant recharge an inactive card'}
+
+	
+
+	const cardData: RechargeInsertData  = {
+     cardId:cardId,
+	 amount:amount
+	}
+    insertRecharge(cardData)
 }
 
 

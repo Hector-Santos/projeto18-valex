@@ -5,7 +5,8 @@ import { createCardService,
          validateCardService,
          getBalanceService,
          blockCardService,
-         unlockCardService } from "../services/cardService.js";
+         unblockCardService,
+         rechargeCardService } from "../services/cardService.js";
 
 export async function createCard(req: Request, res: Response) {
     const apiKey:string = res.locals.apiKey
@@ -29,15 +30,21 @@ export async function getBalance(req: Request, res: Response) {
     res.status(200).send(balance)    
     }
 export async function blockCard(req: Request, res: Response) {
-        const cardId:number = req.body.cardId
-        const password: string = req.body.password
-        await blockCardService(cardId, password)
-        res.sendStatus(200)    
-        }
+    const cardId:number = req.body.cardId
+    const password: string = req.body.password
+    await blockCardService(cardId, password)
+    res.sendStatus(200)    
+    }
 
-export async function unlockCard(req: Request, res: Response) {
-        const cardId:number = req.body.cardId
-        const password: string = req.body.password
-        await unlockCardService(cardId, password)
-        res.sendStatus(200)    
-        }
+export async function unblockCard(req: Request, res: Response) {
+    const cardId:number = req.body.cardId
+    const password: string = req.body.password
+    await unblockCardService(cardId, password)
+    res.sendStatus(200)    
+    }
+export async function rechargeCard(req: Request, res: Response) {
+    const cardId:number = req.body.cardId
+    const amount: number = req.body.amount
+    await rechargeCardService(cardId, amount)
+    res.sendStatus(200)    
+    }
