@@ -4,7 +4,7 @@ import { CardInsertData,
          CardUpdateData,
          findByTypeAndEmployeeId,
          TransactionTypes, insert,
-         findById as findCardByID,
+         findById as findCardById,
          update as updateCard } from "../repositories/cardRepository.js";
 import { findByCardId as findPaymentsByCardId,
 	     PaymentWithBusinessName } from "../repositories/paymentRepository.js";
@@ -57,7 +57,7 @@ export async function createCardService(apiKey:string, employeeId:number, cardTy
 }
 
 export async function validateCardService(cardId:number, cvc:string, password:string) {
-	const card = await findCardByID(cardId);
+	const card = await findCardById(cardId);
 	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
 	
     const isExpired = compareDate(card.expirationDate)
@@ -82,7 +82,7 @@ export async function getBalanceService(cardIdParams:string) {
 	console.log(cardIdParams)
     if(!cardId) throw {type: 'invalid_card_id', message: 'the provided card id is not valid'}
 
-    const card = await findCardByID(cardId);
+    const card = await findCardById(cardId);
 	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
 
 	const payments = await findPaymentsByCardId(cardId)
@@ -98,7 +98,7 @@ export async function getBalanceService(cardIdParams:string) {
 
 
 export async function blockCardService(cardId:number, password:string) {
-	const card = await findCardByID(cardId);
+	const card = await findCardById(cardId);
 	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
 	
     const isExpired = compareDate(card.expirationDate)
@@ -120,7 +120,7 @@ export async function blockCardService(cardId:number, password:string) {
 }
 
 export async function unblockCardService(cardId:number, password:string) {
-	const card = await findCardByID(cardId);
+	const card = await findCardById(cardId);
 	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
 	
     const isExpired = compareDate(card.expirationDate)
@@ -142,7 +142,7 @@ export async function unblockCardService(cardId:number, password:string) {
 }
 
 export async function rechargeCardService(cardId:number, amount:number) {
-	const card = await findCardByID(cardId);
+	const card = await findCardById(cardId);
 	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
 	
     const isExpired = compareDate(card.expirationDate)
@@ -196,7 +196,7 @@ function getCardExpirationDate(){
 	return(expirationDate)
 }
 
-function compareDate(expirationDate:string){
+export function compareDate(expirationDate:string){
 	const date = new Date()
     const month = date.getMonth()+1
     const year = Number(date.getFullYear().toString().substring(2))
@@ -212,7 +212,7 @@ function compareDate(expirationDate:string){
     }
 }
 
-function calculateBalance(paymentsArray:PaymentWithBusinessName[], rechargesArray:Recharge[]){
+export function calculateBalance(paymentsArray:PaymentWithBusinessName[], rechargesArray:Recharge[]){
     let balanceTotal = 0
     const transactions = paymentsArray.map(payment => {
        const formatedDate = formatTimestamp(payment.timestamp)
