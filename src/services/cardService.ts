@@ -88,6 +88,50 @@ export async function getBalanceService(cardIdParams:string) {
 }
 
 
+export async function blockCardService(cardId:number, password:string) {
+	const card = await findCardByID(cardId);
+	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
+	
+    const isExpired = compareDate(card.expirationDate)
+	if(isExpired) throw {type: 'expired_card', message: 'you cant block an expired card'}
+
+	if(card.isBlocked) throw {type: 'blocked_card', message: 'this card is already blocked'}
+
+    if(!card.password)throw {type: 'inactive_card', message: 'you cant block an inactive card'} 
+
+	const decriptedPassword = cryptr.decrypt(card.password)
+
+	if(password !== decriptedPassword) throw {type: 'incorrect_password', message: 'the provided password is incorrect'}
+    
+	const cardData: CardUpdateData  = {
+		isBlocked:true
+	   }
+
+    updateCard(cardId, cardData)
+}
+
+export async function unlockCardService(cardId:number, password:string) {
+	const card = await findCardByID(cardId);
+	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
+	
+    const isExpired = compareDate(card.expirationDate)
+	if(isExpired) throw {type: 'expired_card', message: 'you cant unlock an expired card'}
+
+	if(!card.isBlocked) throw {type: 'unlocked_card', message: 'this card is already unlocked'}
+
+	if(!card.password)throw {type: 'inactive_card', message: 'you cant unlock an inactive card'}
+
+	const decriptedPassword = cryptr.decrypt(card.password)
+
+	if(password !== decriptedPassword) throw {type: 'incorrect_password', message: 'the provided password is incorrect'}
+    
+	const cardData: CardUpdateData  = {
+		isBlocked:false
+	   }
+
+    updateCard(cardId, cardData)
+}
+
 
 function formatName(name:string){
 	const nameArray = name.toUpperCase().split(" ")
