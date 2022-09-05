@@ -1,6 +1,8 @@
 import { findByApiKey } from "../repositories/companyRepository.js";
 import { findById } from "../repositories/employeeRepository.js";
 import { CardInsertData, CardUpdateData, findByTypeAndEmployeeId, TransactionTypes, insert, findById as findCardByID, update as updateCard } from "../repositories/cardRepository.js";
+import { findByCardId as findPaymentsByCardId, PaymentWithBusinessName } from "../repositories/paymentRepository.js";
+import { findByCardId as findRechargesByCardId, Recharge } from "../repositories/rechargeRepository.js";
 import { faker } from '@faker-js/faker'
 import dotenv from 'dotenv';
 import Cryptr from 'cryptr'
@@ -65,6 +67,28 @@ export async function validateCardService(cardId:number, cvc:string, password:st
     updateCard(cardId, cardData)
 }
 
+export async function getBalanceService(cardIdParams:string) {
+
+	const cardId = Number(cardIdParams)
+	console.log(cardIdParams)
+    if(!cardId) throw {type: 'invalid_card_id', message: 'the provided card id is not valid'}
+
+    const card = await findCardByID(cardId);
+	if(!card) throw {type: 'card_not_found', message: 'there is no card with such id'}
+
+	const payments = await findPaymentsByCardId(cardId)
+	if(!payments) throw {type: 'payment_not_found', message: 'payment data could not be recovered'}
+
+	const recharges = await findRechargesByCardId(cardId)
+	if(!recharges) throw {type: 'recharge_not_found', message: 'recharge data could not be recovered'}
+
+	const balance = calculateBalance(payments, recharges)
+
+	return balance
+}
+
+
+
 function formatName(name:string){
 	const nameArray = name.toUpperCase().split(" ")
 	let formatedName = ""
@@ -115,4 +139,51 @@ function compareDate(expirationDate:string){
     }else{
     return false
     }
+}
+
+function calculateBalance(paymentsArray:PaymentWithBusinessName[], rechargesArray:Recharge[]){
+    let balanceTotal = 0
+    const transactions = paymentsArray.map(payment => {
+       const formatedDate = formatTimestamp(payment.timestamp)
+       balanceTotal -= payment.amount
+        return({
+            id: payment.id,
+            cardId: payment.cardId,
+            businessId: payment.businessId,
+            businessName:
+            payment.businessName,
+            timestamp:formatedDate,
+            amount: payment.amount
+        })})
+
+
+    const recharges = rechargesArray.map(recharge => {
+       balanceTotal += recharge.amount
+       const formatedDate = formatTimestamp(recharge.timestamp)
+        return({
+            id: recharge.id,
+            cardId: recharge.cardId,
+            timestamp:formatedDate,
+            amount:recharge.amount
+        })})
+
+    const balance = {
+        balance: balanceTotal,
+        transactions:transactions,
+        recharges:recharges
+    }
+    
+    return balance 
+}
+
+function formatTimestamp(timestamp:Date){
+
+    let day = timestamp.getDate().toString()
+    let month = (timestamp.getMonth()+1).toString()
+    let year = timestamp.getFullYear().toString()
+    day.length === 1? day = "0" + day: null
+    month.length === 1? month = "0" + month: null
+    const formatedDate:string = day + "/" + month + "/" + year
+    return formatedDate
+
 }

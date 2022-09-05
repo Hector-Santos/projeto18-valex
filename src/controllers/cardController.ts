@@ -1,7 +1,7 @@
 
 import {Request, Response } from "express";
 import { TransactionTypes } from "../repositories/cardRepository.js";
-import { createCardService, validateCardService } from "../services/cardService.js";
+import { createCardService, validateCardService, getBalanceService } from "../services/cardService.js";
 
 export async function createCard(req: Request, res: Response) {
     const apiKey:string = res.locals.apiKey
@@ -19,3 +19,8 @@ export async function validateCard(req: Request, res: Response) {
     res.sendStatus(201)    
     }
 
+export async function getBalance(req: Request, res: Response) {
+    const cardIdParams:string = req.params.id
+    const balance = await getBalanceService(cardIdParams)
+    res.status(200).send(balance)    
+    }

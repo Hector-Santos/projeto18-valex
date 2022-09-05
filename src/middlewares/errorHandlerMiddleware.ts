@@ -9,5 +9,9 @@ export default async function errorHandler(error:{type: string, message: string}
 	if (error.type === "expired_card") return res.status(400).send(error.message);
     if (error.type === "validated_card") return res.status(409).send(error.message);
 	if (error.type === "invalid_cvc") return res.status(400).send(error.message);
+	if (error.type === "invalid_card_id") return res.status(400).send(error.message);
+	if (error.type === "payment_not_found") return res.status(404).send(error.message);
+	if (error.type === "recharge_not_found") return res.status(404).send(error.message);
+
 	return res.sendStatus(500);
 }

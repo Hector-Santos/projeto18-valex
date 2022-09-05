@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "microtests": "nodemon src/testes.js",
+    "microtests": "nodemon src/testes.ts",
     "dev": "nodemon src/index.ts"
   },
   "keywords": [],
